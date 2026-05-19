@@ -165,6 +165,13 @@ export default function usePhysicsEngine(canvasRef, containerRef) {
 
     if (runState === 'running') {
       engine.timing.timeScale = 1
+
+      // Wake up ALL non-static bodies so that objects dragged while paused
+      // immediately participate in physics instead of staying frozen until clicked
+      Composite.allBodies(engine.world).forEach(b => {
+        if (!b.isStatic) Matter.Sleeping.set(b, false)
+      })
+
       Runner.run(runner, engine)
 
       // Auto-launch collision experiment spheres ONLY if we are starting fresh (from idle)
@@ -181,6 +188,12 @@ export default function usePhysicsEngine(canvasRef, containerRef) {
       }
     } else if (runState === 'slowmo') {
       engine.timing.timeScale = 0.25
+
+      // Wake up ALL non-static bodies (same as running)
+      Composite.allBodies(engine.world).forEach(b => {
+        if (!b.isStatic) Matter.Sleeping.set(b, false)
+      })
+
       Runner.run(runner, engine)
     } else if (runState === 'paused') {
       Runner.stop(runner)
